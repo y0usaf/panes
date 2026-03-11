@@ -1,0 +1,19 @@
+{
+  "version": "0.38.0",
+  "notes": "## [](https://github.com/wygoralves/panes/compare/v0.37.0...vnull) (2026-03-11)\n\n### Features\n\n* optimize terminal buffer, chat rendering, and editor cache ([b522c59](https://github.com/wygoralves/panes/commit/b522c5914b4e530384efb9fe19db587752c56b99))\n\n### Bug Fixes\n\n* fix clickable area of buttons ([0db8016](https://github.com/wygoralves/panes/commit/0db8016bd88a10da669220610de7d8fec4ab0b67))\n* harden keep-awake helper lifecycle ([c6d89b6](https://github.com/wygoralves/panes/commit/c6d89b66274c649041c75283e54584fa510e1f6a))",
+  "pub_date": "2026-03-11T01:55:30Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSb2FpYW94bWV1cWlCd2pXVVl3clJ4SW10NlV5azVSalBOS0pVRFRuc1YxSktLNVNmSnQ2OHBnK2ZxMGtPRGkrN1R1bS8yUUc3dFZwbUlsY0VSRSt5VlhGREQzL0xSc2dvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzczMTk0OTc4CWZpbGU6UGFuZXMuYXBwLnRhci5negp1azFvN20xeWpBWDVSR2E4SVVHUXVrQU5TYmRReC9INSt1bEt6UTcwRGt4WGRkcTJpc0JXQ2hYTTBka2piWUVtMEhFYmdZOXdzdE94amVjdzdEZFNBQT09Cg==",
+      "url": "https://github.com/wygoralves/panes/releases/download/v0.38.0/Panes.app.tar.gz"
+    },
+    "darwin-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSb2FpYW94bWV1cWlCd2pXVVl3clJ4SW10NlV5azVSalBOS0pVRFRuc1YxSktLNVNmSnQ2OHBnK2ZxMGtPRGkrN1R1bS8yUUc3dFZwbUlsY0VSRSt5VlhGREQzL0xSc2dvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzczMTk0OTc4CWZpbGU6UGFuZXMuYXBwLnRhci5negp1azFvN20xeWpBWDVSR2E4SVVHUXVrQU5TYmRReC9INSt1bEt6UTcwRGt4WGRkcTJpc0JXQ2hYTTBka2piWUVtMEhFYmdZOXdzdE94amVjdzdEZFNBQT09Cg==",
+      "url": "https://github.com/wygoralves/panes/releases/download/v0.38.0/Panes.app.tar.gz"
+    },
+    "linux-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSb2FpYW94bWV1cWpiV1RmdnZlSWdMQURRa0NVSThyQVpXVmVLUmUvWlhKS0pjWldCMFRucFdHdytUMXk0R3prTjVhd0hlb3d0UTRiVXNhTGptcmQvMVAwQjlZNVZQWmdNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzczMTk0NzUyCWZpbGU6UGFuZXNfMC4zOC4wX2FtZDY0LkFwcEltYWdlCnFpdVVZU2podTlITllpQWNmMm1KZ3dYMEYwOTQvZlo2aGtqQ2lISzVhclRRM1J4amxzVDdyYkxGNGZCcjgvZ0p0ZGVnbVgrRnJIbk03dUJ0OFN2WENRPT0K",
+      "url": "https://github.com/wygoralves/panes/releases/download/v0.38.0/Panes_0.38.0_amd64.AppImage"
+    }
+  }
+}
