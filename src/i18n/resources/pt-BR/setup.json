@@ -10,7 +10,7 @@
   "deps": {
     "node": {
       "auto": "Nao encontrado - sera instalado via Homebrew",
-      "manual": "Nao encontrado - instale o Node.js 20+ manualmente"
+      "manual": "Nao encontrado - instale o Node.js 20+ ou Bun manualmente"
     },
     "codex": {
       "auto": "Nao encontrado - sera instalado via npm",
@@ -28,12 +28,12 @@
   },
   "manual": {
     "title": "Instalacao manual",
-    "installNode": "Instalar Node.js",
+    "installNode": "Instalar Node.js ou Bun",
     "installCodex": "Instalar Codex CLI",
-    "nodeAltOrDownload": "Ou baixe em https://nodejs.org",
-    "nodeAltInstall": "Instale o Node.js 20+ em https://nodejs.org",
-    "nodeAltPackageManagerDetected": "Instale o Node.js 20+ com {{manager}} ou em https://nodejs.org",
-    "nodeAltPackageManager": "Instale o Node.js 20+ com o gerenciador de pacotes do seu sistema operacional ou em https://nodejs.org",
+    "nodeAltOrDownload": "Ou baixe o Node.js em https://nodejs.org ou o Bun em https://bun.sh",
+    "nodeAltInstall": "Instale o Node.js 20+ em https://nodejs.org ou o Bun em https://bun.sh",
+    "nodeAltPackageManagerDetected": "Instale o Node.js 20+ com {{manager}} ou o Bun em https://bun.sh",
+    "nodeAltPackageManager": "Instale o Node.js 20+ com o gerenciador de pacotes do seu sistema operacional ou o Bun em https://bun.sh",
     "copied": "Copiado"
   },
   "install": {

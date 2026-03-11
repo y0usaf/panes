@@ -129,19 +129,19 @@ struct ClaudeTransport {
 
 impl ClaudeTransport {
     async fn spawn(sidecar_path: PathBuf) -> anyhow::Result<Self> {
-        let node_resolution = resolve_node_executable().await;
-        let node = node_resolution
+        let runtime_resolution = resolve_js_runtime().await;
+        let runtime = runtime_resolution
             .executable
             .clone()
-            .with_context(|| node_unavailable_details(&node_resolution))?;
+            .with_context(|| runtime_unavailable_details(&runtime_resolution))?;
 
         let sidecar_dir = sidecar_path
             .parent()
             .map(|path| path.to_path_buf())
             .unwrap_or_else(|| PathBuf::from("."));
 
-        let mut command = Command::new(&node);
-        if let Some(augmented_path) = executable_augmented_path(&node) {
+        let mut command = Command::new(&runtime);
+        if let Some(augmented_path) = executable_augmented_path(&runtime) {
             command.env("PATH", augmented_path);
         }
         let mut child = command
@@ -228,6 +228,14 @@ impl ClaudeTransport {
     }
 
     fn resolve_sidecar_path(resource_dir: Option<&PathBuf>) -> anyhow::Result<PathBuf> {
+        // Allow override via env var (used by Nix packaging)
+        if let Ok(path) = env::var("PANES_SIDECAR_PATH") {
+            let p = PathBuf::from(path);
+            if p.exists() {
+                return Ok(p);
+            }
+        }
+
         let dev_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("sidecar")
             .join("claude-agent-sdk-server.mjs");
@@ -308,8 +316,9 @@ pub struct ClaudeSidecarEngine {
 }
 
 #[derive(Debug, Clone)]
-struct NodeExecutableResolution {
+struct JsRuntimeResolution {
     executable: Option<PathBuf>,
+    runtime_name: &'static str,
     source: &'static str,
     app_path: Option<String>,
     login_shell_executable: Option<PathBuf>,
@@ -399,8 +408,8 @@ impl ClaudeSidecarEngine {
             let state = self.state.lock().await;
             state.resource_dir.clone()
         };
-        let node_resolution = resolve_node_executable().await;
-        let node_available = node_resolution.executable.is_some();
+        let runtime_resolution = resolve_js_runtime().await;
+        let runtime_available = runtime_resolution.executable.is_some();
         let sidecar_exists = ClaudeTransport::resolve_sidecar_path(resource_dir.as_ref()).is_ok();
         let api_key_set = std::env::var("ANTHROPIC_API_KEY").is_ok();
 
@@ -408,24 +417,27 @@ impl ClaudeSidecarEngine {
         let mut warnings = Vec::new();
         let mut fixes = Vec::new();
 
+        checks.push("bun --version".to_string());
         checks.push("node --version".to_string());
+        checks.push("command -v bun".to_string());
         checks.push("command -v node".to_string());
         #[cfg(target_os = "macos")]
         {
             checks.push("echo \"$PATH\"".to_string());
-            checks.push("/bin/zsh -lic 'command -v node && node --version'".to_string());
+            checks.push("/bin/zsh -lic 'command -v bun && bun --version || command -v node && node --version'".to_string());
         }
 
-        if let Some(node_path) = node_resolution.executable.as_ref() {
+        if let Some(runtime_path) = runtime_resolution.executable.as_ref() {
             checks.push(format!(
-                "Node.js resolved via {} at `{}`",
-                node_resolution.source,
-                node_path.display()
+                "{} resolved via {} at `{}`",
+                runtime_resolution.runtime_name,
+                runtime_resolution.source,
+                runtime_path.display()
             ));
         } else {
-            warnings.push(node_unavailable_details(&node_resolution));
-            fixes.extend(node_fix_commands(&node_resolution));
-            fixes.push("Install Node.js 20+ from https://nodejs.org".to_string());
+            warnings.push(runtime_unavailable_details(&runtime_resolution));
+            fixes.extend(runtime_fix_commands(&runtime_resolution));
+            fixes.push("Install Bun from https://bun.sh or Node.js 20+ from https://nodejs.org".to_string());
         }
 
         if sidecar_exists {
@@ -447,7 +459,7 @@ impl ClaudeSidecarEngine {
             );
         }
 
-        let available = node_available && sidecar_exists;
+        let available = runtime_available && sidecar_exists;
 
         ClaudeHealthReport {
             available,
@@ -458,8 +470,8 @@ impl ClaudeSidecarEngine {
             },
             details: if available {
                 "Claude Agent SDK engine is ready".to_string()
-            } else if !node_available {
-                node_unavailable_details(&node_resolution)
+            } else if !runtime_available {
+                runtime_unavailable_details(&runtime_resolution)
             } else if !sidecar_exists {
                 "Claude Agent SDK sidecar script not found in bundled resources".to_string()
             } else {
@@ -472,23 +484,28 @@ impl ClaudeSidecarEngine {
     }
 }
 
-async fn resolve_node_executable() -> NodeExecutableResolution {
+async fn resolve_js_runtime() -> JsRuntimeResolution {
     let app_path = std::env::var("PATH").ok();
 
-    if let Some(path) = runtime_env::resolve_executable("node") {
-        return NodeExecutableResolution {
-            executable: Some(path),
-            source: "app-path",
-            app_path,
-            login_shell_executable: None,
-        };
+    // Prefer bun, fall back to node
+    for &name in &["bun", "node"] {
+        if let Some(path) = runtime_env::resolve_executable(name) {
+            return JsRuntimeResolution {
+                executable: Some(path),
+                runtime_name: name,
+                source: "app-path",
+                app_path: app_path.clone(),
+                login_shell_executable: None,
+            };
+        }
     }
 
-    let login_shell_executable = detect_node_via_login_shell().await;
+    let login_shell_executable = detect_js_runtime_via_login_shell().await;
     let executable = login_shell_executable.clone();
 
-    NodeExecutableResolution {
+    JsRuntimeResolution {
         executable,
+        runtime_name: "node",
         source: if login_shell_executable.is_some() {
             "login-shell"
         } else {
@@ -499,7 +516,7 @@ async fn resolve_node_executable() -> NodeExecutableResolution {
     }
 }
 
-fn node_unavailable_details(resolution: &NodeExecutableResolution) -> String {
+fn runtime_unavailable_details(resolution: &JsRuntimeResolution) -> String {
     let path_preview = resolution
         .app_path
         .clone()
@@ -508,18 +525,18 @@ fn node_unavailable_details(resolution: &NodeExecutableResolution) -> String {
 
     match resolution.login_shell_executable.as_ref() {
         Some(shell_path) => format!(
-            "Node.js was found in your login shell at `{}`, but Panes does not see it in the app PATH. This is common when launching the app from Finder on macOS. App PATH: `{}`",
+            "Node.js or Bun was found in your login shell at `{}`, but Panes does not see it in the app PATH. This is common when launching the app from Finder on macOS. App PATH: `{}`",
             shell_path.display(),
             path_preview
         ),
         None => format!(
-            "Node.js executable not found for the Claude engine. App PATH: `{}`",
+            "Node.js or Bun executable not found for the Claude engine. App PATH: `{}`",
             path_preview
         ),
     }
 }
 
-fn node_fix_commands(resolution: &NodeExecutableResolution) -> Vec<String> {
+fn runtime_fix_commands(resolution: &JsRuntimeResolution) -> Vec<String> {
     #[cfg(target_os = "macos")]
     {
         let mut fixes = Vec::new();
@@ -534,7 +551,7 @@ fn node_fix_commands(resolution: &NodeExecutableResolution) -> Vec<String> {
                 }
             }
             None => {
-                fixes.push("/bin/zsh -lic 'command -v node && node --version'".to_string());
+                fixes.push("/bin/zsh -lic 'command -v bun && bun --version || command -v node && node --version'".to_string());
                 fixes.push("open -a Panes".to_string());
             }
         }
@@ -558,7 +575,7 @@ fn executable_augmented_path(executable: &Path) -> Option<OsString> {
     )
 }
 
-async fn detect_node_via_login_shell() -> Option<PathBuf> {
+async fn detect_js_runtime_via_login_shell() -> Option<PathBuf> {
     #[cfg(target_os = "windows")]
     {
         None
@@ -567,10 +584,12 @@ async fn detect_node_via_login_shell() -> Option<PathBuf> {
     #[cfg(not(target_os = "windows"))]
     {
         for shell in runtime_env::login_probe_shells() {
+            // Try bun first, then node
+            for runtime_bin in &["bun", "node"] {
             let output = match Command::new(&shell)
                 .args(runtime_env::login_probe_shell_args(
                     &shell,
-                    "command -v node",
+                    &format!("command -v {runtime_bin}"),
                 ))
                 .output()
                 .await
@@ -589,6 +608,7 @@ async fn detect_node_via_login_shell() -> Option<PathBuf> {
             {
                 return Some(path);
             }
+            } // end for runtime_bin
         }
 
         None
@@ -689,7 +709,7 @@ impl Engine for ClaudeSidecarEngine {
     }
 
     async fn is_available(&self) -> bool {
-        resolve_node_executable().await.executable.is_some() && {
+        resolve_js_runtime().await.executable.is_some() && {
             let state = self.state.lock().await;
             ClaudeTransport::resolve_sidecar_path(state.resource_dir.as_ref()).is_ok()
         }

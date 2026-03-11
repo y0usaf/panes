@@ -191,7 +191,7 @@ function PlanPhase() {
   return (
     <div style={{ display: "grid", gap: 10 }}>
       <DepCard
-        label="Node.js"
+        label="Node.js / Bun"
         dep={report.node}
         description={
           report.node.canAutoInstall
@@ -443,7 +443,7 @@ function CompletePhase() {
     <div style={{ display: "grid", gap: 12 }}>
       <div style={{ display: "grid", gap: 6 }}>
         {report?.node.found && (
-          <CheckItem label="Node.js" detail={report.node.version ?? t("status.detected")} />
+          <CheckItem label="Node.js / Bun" detail={report.node.version ?? t("status.detected")} />
         )}
         {report?.codex.found && (
           <CheckItem label="Codex CLI" detail={report.codex.version ?? t("status.detected")} />
