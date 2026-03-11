@@ -16,7 +16,7 @@ const requiredArtifacts = [
   ),
 ];
 
-const pnpmExecutable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const bunExecutable = process.platform === "win32" ? "bun.cmd" : "bun";
 
 async function ensureArtifactsExist() {
   for (const artifactPath of requiredArtifacts) {
@@ -62,5 +62,5 @@ if (process.env.PANES_SKIP_DESKTOP_PREBUILD === "1") {
   process.exit(0);
 }
 
-await run(pnpmExecutable, ["run", "build"]);
-await run(pnpmExecutable, ["run", "build:claude-sidecar"]);
+await run(bunExecutable, ["run", "build"]);
+await run(bunExecutable, ["run", "build:claude-sidecar"]);
