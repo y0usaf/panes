@@ -100,6 +100,7 @@
               --prefix PATH : /run/current-system/sw/bin
               --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs pkgs.bun ]}
               --set PANES_SIDECAR_PATH "$out/share/panes/claude-agent-sdk-server.mjs"
+              --unset CLAUDECODE
             )
           '';
 
