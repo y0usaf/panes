@@ -6,9 +6,13 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+  }:
+    flake-utils.lib.eachDefaultSystem (
+      system: let
         pkgs = nixpkgs.legacyPackages.${system};
         inherit (pkgs) lib;
 
@@ -46,7 +50,6 @@
             cp -r src-tauri/sidecar-dist $out/sidecar-dist
           '';
         };
-
       in {
         packages.default = pkgs.rustPlatform.buildRustPackage {
           inherit pname version;
@@ -98,8 +101,9 @@
           preFixup = ''
             gappsWrapperArgs+=(
               --prefix PATH : /run/current-system/sw/bin
-              --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs pkgs.bun ]}
+              --prefix PATH : ${lib.makeBinPath [pkgs.nodejs pkgs.bun]}
               --set PANES_SIDECAR_PATH "$out/share/panes/claude-agent-sdk-server.mjs"
+              --set CLAUDE_BINARY_PATH /run/current-system/sw/bin/claude
               --unset CLAUDECODE
             )
           '';
@@ -108,7 +112,7 @@
             description = "Agent Development Environment for orchestrating AI agents";
             homepage = "https://panesade.com";
             license = licenses.mit;
-            platforms = [ "x86_64-linux" "aarch64-linux" ];
+            platforms = ["x86_64-linux" "aarch64-linux"];
             mainProgram = "Panes";
           };
         };

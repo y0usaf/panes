@@ -787,7 +787,13 @@ async function handleQuery(req) {
       sessionCwd,
       sessionId || resume || "",
     );
-    const query = queryFn({ prompt: promptInput, options });
+    // Inject claude binary path from env var if not already specified
+    // Required for Nix builds where claude is not co-located with the sidecar
+    const resolvedOptions =
+      !options.pathToClaudeCodeExecutable && process.env.CLAUDE_BINARY_PATH
+        ? { ...options, pathToClaudeCodeExecutable: process.env.CLAUDE_BINARY_PATH }
+        : options;
+    const query = queryFn({ prompt: promptInput, options: resolvedOptions });
     context.query = query;
 
     for await (const message of query) {
