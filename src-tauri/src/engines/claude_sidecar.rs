@@ -228,6 +228,14 @@ impl ClaudeTransport {
     }
 
     fn resolve_sidecar_path(resource_dir: Option<&PathBuf>) -> anyhow::Result<PathBuf> {
+        // Allow override via env var (used by Nix packaging)
+        if let Ok(path) = env::var("PANES_SIDECAR_PATH") {
+            let p = PathBuf::from(path);
+            if p.exists() {
+                return Ok(p);
+            }
+        }
+
         let dev_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("sidecar")
             .join("claude-agent-sdk-server.mjs");

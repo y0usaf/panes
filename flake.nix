@@ -88,11 +88,18 @@
             export PANES_SKIP_DESKTOP_PREBUILD=1
           '';
 
-          # Add claude + node + bun to PATH via wrapGAppsHook
+          postInstall = ''
+            # Install sidecar next to binary so PANES_SIDECAR_PATH can find it
+            mkdir -p $out/share/panes
+            cp ${frontend}/sidecar-dist/claude-agent-sdk-server.mjs $out/share/panes/
+          '';
+
+          # Add claude + node + bun to PATH, and point to sidecar via wrapGAppsHook
           preFixup = ''
             gappsWrapperArgs+=(
               --prefix PATH : /run/current-system/sw/bin
               --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs pkgs.bun ]}
+              --set PANES_SIDECAR_PATH "$out/share/panes/claude-agent-sdk-server.mjs"
             )
           '';
 
